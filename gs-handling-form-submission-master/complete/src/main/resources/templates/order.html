@@ -1,0 +1,41 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head> 
+    <title>Order a product</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+</head>
+<body>
+	<h1>Product order</h1>
+    <form action="#" th:action="@{/order}" th:object="${order}" method="post">
+    	<p><strong>Personal information</strong></p>
+    	<p>Name: <input type="text" th:field="*{name}" /></p>
+        <p>Address Line 1: <input type="text" th:field="*{addr1}" /></p>
+        <p>Address Line 2: <input type="text" th:field="*{addr2}" /></p>
+        <p>Address Line 3: <input type="text" th:field="*{addr3}" /></p>
+        <p>Postal Code: <input type="text" th:field="*{post}" /></p>
+        <p>E-mail: <input type="text" th:field="*{email}" /></p>
+        <p><strong>Order Lines:</strong></p>
+        <p>Fruits: Banana <input type="radio" name="item1" th:field="*{item1}" value="banana" />
+        		   Strawberry <input type="radio" name="item1" th:field="*{item1}" value="strawberry" />
+        		   Mango <input type="radio" name="item1" th:field="*{item1}" value="mango" />
+           Quantity: <input type="text" th:field="*{qty1}" />
+        </p>
+        <p>Vegetables: Letuce <input type="radio" name="item2" th:field="*{item2}" value="letuce" />
+        		       Corn <input type="radio" name="item2" th:field="*{item2}" value="corn" />
+        		       Cuncumber <input type="radio" name="item2" th:field="*{item2}" value="cuncumber" />
+           Quantity: <input type="text" th:field="*{qty2}" />
+        </p>
+        <p>Drinks: Coke <input type="radio" name="item3" th:field="*{item3}" value="coke" />
+        		   Fresh Juice <input type="radio" name="item3" th:field="*{item3}" value="freshjuice" />
+        		   Tea <input type="radio" name="item3" th:field="*{item3}" value="tea" />
+           Quantity: <input type="text" th:field="*{qty3}" />
+        </p>
+        <p><strong>Credit Card details:</strong></p>
+        <p>Card Number: <input type="text" th:field="*{ccno}" /></p>
+        <p>Expiry Date: <input type="month" th:field="*{expiry}" /></p>
+        <p>Cardholder Name: <input type="text" th:field="*{ccname}" /></p>
+        <p>3-Digit code: <input type="text" th:field="*{security}" /></p>
+        <p><input type="submit" value="Submit" /> <input type="reset" value="Reset" /></p>        
+    </form>
+</body>
+</html>
