@@ -7,35 +7,110 @@
 <body>
 	<h1>Product order</h1>
     <form action="#" th:action="@{/order}" th:object="${order}" method="post">
-    	<p><strong>Personal information</strong></p>
-    	<p>Name: <input type="text" th:field="*{name}" /></p>
-        <p>Address Line 1: <input type="text" th:field="*{addr1}" /></p>
-        <p>Address Line 2: <input type="text" th:field="*{addr2}" /></p>
-        <p>Address Line 3: <input type="text" th:field="*{addr3}" /></p>
-        <p>Postal Code: <input type="text" th:field="*{post}" /></p>
-        <p>E-mail: <input type="text" th:field="*{email}" /></p>
-        <p><strong>Order Lines:</strong></p>
-        <p>Fruits: Banana <input type="radio" name="item1" th:field="*{item1}" value="banana" />
-        		   Strawberry <input type="radio" name="item1" th:field="*{item1}" value="strawberry" />
-        		   Mango <input type="radio" name="item1" th:field="*{item1}" value="mango" />
-           Quantity: <input type="text" th:field="*{qty1}" />
-        </p>
-        <p>Vegetables: Letuce <input type="radio" name="item2" th:field="*{item2}" value="letuce" />
-        		       Corn <input type="radio" name="item2" th:field="*{item2}" value="corn" />
-        		       Cuncumber <input type="radio" name="item2" th:field="*{item2}" value="cuncumber" />
-           Quantity: <input type="text" th:field="*{qty2}" />
-        </p>
-        <p>Drinks: Coke <input type="radio" name="item3" th:field="*{item3}" value="coke" />
-        		   Fresh Juice <input type="radio" name="item3" th:field="*{item3}" value="freshjuice" />
-        		   Tea <input type="radio" name="item3" th:field="*{item3}" value="tea" />
-           Quantity: <input type="text" th:field="*{qty3}" />
-        </p>
-        <p><strong>Credit Card details:</strong></p>
-        <p>Card Number: <input type="text" th:field="*{ccno}" /></p>
-        <p>Expiry Date: <input type="month" th:field="*{expiry}" /></p>
-        <p>Cardholder Name: <input type="text" th:field="*{ccname}" /></p>
-        <p>3-Digit code: <input type="text" th:field="*{security}" /></p>
-        <p><input type="submit" value="Submit" /> <input type="reset" value="Reset" /></p>        
+    <p><strong>Customer details:</strong></p>
+    <table>
+    	<tr>
+	    	<td>Name:</td> 
+	    	<td><input type="text" th:field="*{name}" /></td>
+	    	<td th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></td>
+  	    </tr>
+        <tr>
+	        <td>Address Line 1 : Street</td>
+	        <td><input type="text" th:field="*{addr1}" /></td>
+	        <td th:if="${#fields.hasErrors('addr1')}" th:errors="*{addr1}"></td>
+        </tr>
+        <tr>
+	       	<td>Address Line 2 : Details</td>
+	       	<td><input type="text" th:field="*{addr2}" /></td>
+	       	<td th:if="${#fields.hasErrors('addr2')}" th:errors="*{addr2}"></td>
+        </tr>
+        <tr>
+	        <td>Address Line 3 : City</td> 
+	        <td><input type="text" th:field="*{addr3}" /></td>
+	        <td th:if="${#fields.hasErrors('addr3')}" th:errors="*{addr3}"></td>
+        </tr>
+        <tr>
+	        <td>Postal Code</td> 
+	        <td><input type="text" th:field="*{post}" /></td>
+	        <td th:if="${#fields.hasErrors('post')}" th:errors="*{post}"></td>
+        </tr>
+        <tr>
+	        <td>E-mail</td> 
+	        <td><input type="email" th:field="*{clientEmail}" /></td>
+	        <td th:if="${#fields.hasErrors('clientEmail')}" th:errors="*{clientEmail}"></td>
+        </tr>
+    </table>
+    <p><strong>Chose your fruits, vegetables and drinks:</strong></p>
+    <table>
+    	<tr>
+         	<td><strong>Fruits</strong></td>
+        </tr>
+        <tr>
+        	<td><input type="radio" name="item1" th:field="*{item1}" value="banana" /> Banana</td>
+        </tr>
+        <tr>
+         	<td><input type="radio" name="item1" th:field="*{item1}" value="strawberry" /> Strawberry</td>
+        </tr>
+        <tr>
+        	<td><input type="radio" name="item1" th:field="*{item1}" value="mango" /> Mango</td>
+        </tr>
+        <tr>
+            <td>Quantity: <input type="text" th:field="*{qty1}" /></td> 
+            <td th:if="${#fields.hasErrors('qty1')}" th:errors="*{qty1}"></td>
+        </tr>
+        <tr>
+        	<td><strong>Vegetables</strong></td>
+        </tr>
+        <tr>
+       	    <td><input type="radio" name="item2" th:field="*{item2}" value="letuce" /> Letuce</td>
+        </tr>
+        <tr>
+         	<td><input type="radio" name="item2" th:field="*{item2}" value="corn" /> Corn</td>
+        </tr>
+        <tr>
+        	<td><input type="radio" name="item2" th:field="*{item2}" value="cucumber" /> Cucumber</td>
+        </tr>
+        <tr>
+            <td>Quantity: <input type="text" th:field="*{qty2}" /></td>
+            <td th:if="${#fields.hasErrors('qty2')}" th:errors="*{qty2}"></td>
+        </tr>
+        <tr>
+        	<td><strong>Drinks</strong></td>
+        </tr>
+        <tr>
+            <td><input type="radio" name="item3" th:field="*{item3}" value="coke" /> Coke</td>
+       	</tr>
+       	<tr>
+       		<td><input type="radio" name="item3" th:field="*{item3}" value="juice" /> Juice</td>
+        </tr>
+        <tr>
+        	<td><input type="radio" name="item3" th:field="*{item3}" value="tea" /> Tea</td>
+        </tr>
+        <tr>
+            <td>Quantity: <input type="text" th:field="*{qty3}" /></td>
+            <td th:if="${#fields.hasErrors('qty3')}" th:errors="*{qty3}"></td>
+        </tr>
+    </table>
+    <p><strong>Credit Card details:</strong></p>
+    <table>
+	    <tr>
+	        <td>Card Number</td><td><input type="text" th:field="*{ccno}" /></td>
+	        <td th:if="${#fields.hasErrors('ccno')}" th:errors="*{ccno}"></td>
+	    </tr>
+	    <tr>
+	        <td>Expiry Date</td><td><input type="month" th:field="*{expiry}" /></td>
+	        <td th:if="${#fields.hasErrors('expiry')}" th:errors="*{expiry}"></td>
+	    </tr>
+	    <tr>
+	        <td>Cardholder Name</td><td><input type="text" th:field="*{ccname}" /></td>
+	        <td th:if="${#fields.hasErrors('ccname')}" th:errors="*{ccname}"></td>
+	    </tr>
+	    <tr>
+	        <td>3-Digit code</td><td><input type="text" th:field="*{security}" /></td> 
+	        <td th:if="${#fields.hasErrors('security')}" th:errors="*{security}"></td> 
+	    </tr>
+    </table>  
+    <p><input type="submit" value="Submit" /> <input type="reset" value="Reset" /></p>      
     </form>
 </body>
 </html>

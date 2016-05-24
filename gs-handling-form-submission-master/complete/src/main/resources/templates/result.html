@@ -1,15 +1,17 @@
 <!DOCTYPE HTML>
 <html xmlns:th="http://www.thymeleaf.org">
 <head> 
-    <title>Getting Started: Handling Form Submission</title>
+    <title>Transaction has been sent to retailer</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 </head>
 <body>
-	<h1>Transaction result</h1>
+	<h1>Transaction result:</h1>
 	
 	<p> Your transaction has been successful </p>
 	
-	<p> A mail has been sent to <p th:text="${order.email}"/> </p>
+	<p> A confirmation has been sent to you on : <p th:text="${order.clientEmail}"/> </p>
+	
+	<p> Your order details have been sent to the retailer </p>
 	
     <p th:text="'Name: ' + ${order.name}" />
     <p th:text="'Transaction ID: ' + ${order.transid}"/>

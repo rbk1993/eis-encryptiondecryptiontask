@@ -1,30 +1,84 @@
 package order;
 
+import mail.mailCredentials;
+
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
+import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Max;
+
 public class Order {
-	
+
+	//Client shipping details
+	@Size(min=1, max=50)
+	@Pattern(regexp = "^(?:(?!\\$).)*$\r?\n?", message = "'$' character forbidden")
     private String name;
+	@Size(min=1, max=100)
+	@Pattern(regexp = "^(?:(?!\\$).)*$\r?\n?", message = "'$' character forbidden")
     private String addr1;
+	@Size(min=1, max=100)
+	@Pattern(regexp = "^(?:(?!\\$).)*$\r?\n?", message = "'$' character forbidden")
     private String addr2;
+	@Size(min=1, max=100)
+	@Pattern(regexp = "^(?:(?!\\$).)*$\r?\n?", message = "'$' character forbidden")
     private String addr3;
+	@NotNull
+	@Min(1000)
+	@Max(99999)
     private Integer post;
-    private String email;
+	@Pattern(regexp = "^[_A-Za-z0-9-\\+]+(\\.[_A-Za-z0-9-]+)*@[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$", message = "Please write a valid email (example@mailbox.com)")
+    private String clientEmail;
+    
+    //Transaction details
     private String transid;
     private String transdate;
+    
+    //Items details
     private String item1, item2, item3;
-    private Integer qty1, qty2, qty3;
+    @NotNull
+    @Min(0)
+    @Max(10)
+    private Integer qty1;
+    @NotNull
+    @Min(0)
+    @Max(10)
+    private Integer qty2;
+    @NotNull
+    @Min(0)
+    @Max(10)
+    private Integer qty3;
     private final Integer pr1 = 3;
     private final Integer pr2 = 2;
     private final Integer pr3 = 5;
   
     //Credit card details
-    private long ccno;
+    @Size(min=8, max=30)
+	@Pattern(regexp = "^(?:(?!\\$).)*$\r?\n?", message = "'$' character forbidden")
+    private String ccno;
+    @Size(min=1, max=100)
+	@Pattern(regexp = "^(?:(?!\\$).)*$\r?\n?", message = "'$' character forbidden")
     private String expiry;
+    @Size(min=1, max=100)
+	@Pattern(regexp = "^(?:(?!\\$).)*$\r?\n?", message = "'$' character forbidden")
     private String ccname;
+    @NotNull
+    @Min(100)
+    @Max(999)
     private Integer security;
     
-    
-    private Integer keyCode;
+    //Details for the transaction file
+    private String keyCode;
     private Integer totalPrice;
+    private String encryptedData;
+    
+    public String getEncryptedData(){
+    	return encryptedData;
+    }
+    
+    public void setEncryptedData(String encryptedData){
+    	this.encryptedData = encryptedData;
+    }
     
     public Integer getTotalPrice() {
         return totalPrice;
@@ -34,11 +88,11 @@ public class Order {
     	this.totalPrice=totalPrice;
     }
 
-    public Integer getKeyCode() {
+    public String getKeyCode() {
         return keyCode;
     }
     
-    public void setKeyCode(Integer keyCode) {
+    public void setKeyCode(String keyCode) {
     	this.keyCode=keyCode;
     }
     
@@ -74,12 +128,12 @@ public class Order {
         this.addr3 = addr3;
     }
     
-    public String getEmail() {
-        return email;
+    public String getClientEmail() {
+        return clientEmail;
     }
 
-    public void setEmail(String email) {
-        this.email = email;
+    public void setClientEmail(String clientEmail) {
+        this.clientEmail = clientEmail;
     }
     
     public String getTransdate() {
@@ -190,11 +244,11 @@ public class Order {
     	this.transid=transid;
     }
     
-    public long getCcno() {
+    public String getCcno() {
         return ccno;
     }
     
-    public void setCcno(long ccno) {
+    public void setCcno(String ccno) {
     	this.ccno=ccno;
     }
     

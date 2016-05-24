@@ -1,5 +1,7 @@
 package encryption;
 
+import java.util.Arrays;
+
 /**
  * Implementation of the Tiny Encryption Algorithm (TEA).
  * The Tiny Encryption Algorithm is one of the fastest and most efficient
@@ -166,10 +168,21 @@ public class TEA {
 		/* Run it through the cipher... and back */
 		byte[] crypt = tea.encrypt(original);
 		byte[] result = tea.decrypt(crypt);
+		
+		String stringRep = Arrays.toString(crypt);
+		
+		String testCrypted = new String(crypt);
+        String testDecrypt = new String(result);
+        String testDecrypt2 = new String(tea.decrypt(stringRep.getBytes()));
+        String testDecrypt3 = new String(stringRep);
 
-		/* Ensure that all went well */
-        String test = new String(result);
-        if (!test.equals(quote))
-		    throw new RuntimeException("Fail");
+        System.out.println(testCrypted+"\n---\n");
+        System.out.println(testDecrypt+"\n---\n");
+        System.out.println(testDecrypt2+"\n---\n");  
+        System.out.println(stringRep+"\n---\n");
+        System.out.println(testDecrypt3+"\n---\n");
+
+//        if (!test.equals(quote))
+//		    throw new RuntimeException("Fail");
 	}
 }

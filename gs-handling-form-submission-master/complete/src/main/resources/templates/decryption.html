@@ -1,0 +1,14 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head> 
+    <title>Decrypt an order</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+</head>
+<body>
+	<h1>Decrypt the transaction file</h1>
+    <form action="#" th:action="@{/retailer}" th:object="${order}" method="post">
+    	<p>Copy encrypted data here <input type="text" th:field="*{encryptedData}"/> </p>
+		<p><input type="submit" value="Submit" /> <input type="reset" value="Reset" /></p>
+    </form>
+</body>
+</html>

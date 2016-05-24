@@ -1,46 +1,94 @@
 package order;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
+import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
+import javax.validation.Valid;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
+
+import decryption.Decryption;
 import encryption.*;
 import mail.*;
+import net.iharder.Base64;
 
 @Controller
-public class OrderController {
+public class OrderController extends WebMvcConfigurerAdapter {
 
-	SensitiveFields sensitiveFields = new SensitiveFields();
-	Integer keyCode = 0;
+	String keyCode = "";
 	Integer transID = 1000;
+	String filePath = "./transaction/";
+	static byte[] prevArray;
 	
+	public static byte[] getPrevArray(){
+		return prevArray;
+	}
+    @Override
+    public void addViewControllers(ViewControllerRegistry registry) {
+        registry.addViewController("/result").setViewName("result");
+    }
+	
+    @RequestMapping(value="/retailer", method=RequestMethod.GET)
+    public String retailerDecrypt(Model model) {
+    	model.addAttribute("order", new Order());
+        return "decryption";
+    }
+    
     @RequestMapping(value="/order", method=RequestMethod.GET)
-    public String orderForm(Model model) {
-        model.addAttribute("order", new Order());
+    public String orderForm(Order order) {
         return "order";
+    }
+    
+    @RequestMapping(value="/retailer", method=RequestMethod.POST)
+    public String retailerDecryptResult(@ModelAttribute Order order, Model model) throws IOException{
+    	
+    	model.addAttribute(order);
+    	
+    	String encryptedData = order.getEncryptedData();
+    	
+		String[] arrayOfFields = Decryption.decryptMessage(encryptedData);
+	
+		Decryption.arrayToOrder(order,arrayOfFields);
+
+    	return "decryptionresult";
     }
 
     @RequestMapping(value="/order", method=RequestMethod.POST)
-    public String orderSubmit(@ModelAttribute Order order, Model model) throws FileNotFoundException {
-        model.addAttribute("order", order);
+    public String orderSubmit(@Valid Order order, BindingResult bindingResult) throws FileNotFoundException {
+        
+        if (bindingResult.hasErrors()) {
+            return "order";
+        }
+    	
         orderEncrypt(order);
         orderStamp(order);
-        String compositeMessage = orderWrapInTransactionFile(order);
+        String fileName = orderWrapInTransactionFile(order);
         
-        String mailBody =
+        String mailBodyForClient =
         		"Dear "+order.getName()+", \n"
         		+ "\n"
-        		+ "Your order has ben received \n"
-        		+ "Please keep the following ticket: \n"
+        		+ "Your order has been sent to the retailer \n"
+        		+ "Please keep the following customer ticket as it may be asked by your retailer if any problem occurs: \n"
+        		+ "Please note that the transaction file you received will be used by your retailer to process your order \n"
         		+ "\n"
         		+ "------------------ \n"
         		+ " - - - \n"
@@ -49,18 +97,45 @@ public class OrderController {
         		+ " - - - \n"
         		+ "Shipping address: "+order.getAddr1()+"/"+order.getAddr2()+"/"+order.getAddr3()+"\n"
         		+ "Postal code: "+order.getPost()+"\n"
-        		+ " - - - \n"
-        		+ "Credit Card no (Crypted): "+sensitiveFields.getCcno()+ "\n"
-        		+ "Card holder name (Crypted): "+sensitiveFields.getCcname()+ "\n"
-        		+ "Amount paid (Crypted): "+sensitiveFields.getTotalPrice()+ "\n"
         		+ "------------------ \n"
         		+ "\n"
-        		+ "Composite message:\n"+compositeMessage+"\n"
-        		+ "\n"
         		+ "Thank you, \n"
-        		+ "Your RedBenk Groceries Team";
+        		+ "Your Order Platform";
         
-        sendOrderViaMail(order, mailBody);
+        String mailSubjectForClient = "Your order number "+order.getTransid();
+        
+        String mailBodyForRetailer =
+        		"Dear retailer,\n"
+        		+ "\n"
+        		+ "A new order has been received\n"
+        		+ "at the following date: "+order.getTransdate()+"\n"
+        		+ "The ID of the order is: "+order.getTransid()+"\n"
+        		+ "\n"
+        		+ "------------------ \n"
+        		+ "For security purpose, the transaction sensitive details"
+        		+ "have been crypted and stored in the attached \n"+fileName+"\n"
+        		+ "To decrypt it please use your web platform at localhost:8080/retailer \n"
+        		+ "You will need to provide the transaction file \n"
+        		+ "------------------ \n"
+        		+ "Thank you, \n"
+        		+ "Your Order Platform";
+        
+        String mailSubjectForRetailer = "New order received. Transaction number: "+order.getTransid();
+        		
+        SendEmail.sendMail(
+        		order.getClientEmail(),
+        		mailBodyForClient,
+        		mailSubjectForClient,
+        		filePath, fileName
+        		);
+        
+        SendEmail.sendMail(
+        		mailCredentials.retailerEmail,
+        		mailBodyForRetailer,
+        		mailSubjectForRetailer,
+        		filePath, fileName
+        		);
+        
         return "result";
     }
 
@@ -79,60 +154,43 @@ public class OrderController {
     						+order.getAddr3()+separator+order.getPost()+separator+order.getTransid()+separator
     						+order.getTransdate()+separator;
     	
-    	if(order.getQty1()>0) {
-    		compositeMessage += order.getItem1()+separator
-    							+sensitiveFields.getQty1()+separator
-    							+sensitiveFields.getPr1()+separator;
-    	} else {
-    		compositeMessage += "nochoice";
-    	}
+    	compositeMessage += order.getItem1()+separator
+    							+order.getQty1()+separator
+    							+order.getPr1()+separator;
+
+    	compositeMessage += order.getItem2()+separator
+    						 	+order.getQty2()+separator
+    						 	+order.getPr2()+separator;
     	
-    	if(order.getQty2()>0) {
-    		compositeMessage += order.getItem2()+separator
-    						 	+sensitiveFields.getQty2()+separator
-    						 	+sensitiveFields.getPr2()+separator;
-    	} else {
-    		compositeMessage += "nochoice";
-    	}
+    	compositeMessage += order.getItem3()+separator
+    							+order.getQty3()+separator
+    							+order.getPr3()+separator;
     	
-    	if(order.getQty3()>0) {
-    		compositeMessage += order.getItem3()+separator
-    							+sensitiveFields.getQty3()+separator
-    							+sensitiveFields.getPr3()+separator;
-    	} else {	
-    		compositeMessage += "nochoice";
-    	}
-    	
-    	compositeMessage += order.getKeyCode()+separator
-    						+sensitiveFields.getCcno()+separator
-    						+sensitiveFields.getExpiry()+separator
-    						+sensitiveFields.getCcname()+separator
-    						+sensitiveFields.getSecurity()+separator
-    						+sensitiveFields.getTotalPrice();
+    	compositeMessage += order.getKeyCode()+separator;
+    	compositeMessage += order.getEncryptedData();
     						
-    	System.out.println("Composite Message "+compositeMessage);
+    	String fileName = order.getTransid()+".trans";
     	
-    	PrintWriter out = new PrintWriter("./transaction/"+order.getTransid()+".trans");
+    	PrintWriter out = new PrintWriter(filePath+fileName);
+    
     	out.println(compositeMessage);
-    	out.close();
-    	
-    	return compositeMessage;
+	    out.close();
+
+    	return fileName;
     }
 
+    /**
+     * orderEncrypt(Order order) encrypts the sensitive fields of the Order POJO.
+     *
+     * @param Order The Order POJO (Plain Old Java Object) with its fields
+     * @return void
+     */
     public void orderEncrypt(Order order) {
     	
 		/* Create a cipher using the first 16 bytes of the passphrase */
 		TEA tea = new TEA(keyStringSelector().getBytes());
 		byte[] original = order.getName().getBytes();
-		
-		/* Test : Run it through the cipher... and back */
-		byte[] crypt = tea.encrypt(original);
-		byte[] result = tea.decrypt(crypt);
-		String testcrypt = new String(crypt); //Crypted Name (For test)
-		String testdecrypt = new String(result); //Decrypted Name (For test)
-		System.out.println("Crypted name = "+testcrypt);
-		System.out.println("Decrypted name = "+testdecrypt);
-		
+
 		/* Set keystring and Total price fields */
 		order.setKeyCode(keyCode);
 		order.setTotalPrice(	 order.getPr1()*order.getQty1()
@@ -140,22 +198,28 @@ public class OrderController {
 								+order.getPr3()*order.getQty3()
 						   );
 		
-		/* Encrypt the desired fields */
+		/* Encrypt the sensitive fields into a single colon */
+		String singleColon = order.getCcno()+":"+order.getExpiry()+":"+order.getCcname()+":"+order.getSecurity()+":"+order.getTotalPrice();
 		
-		sensitiveFields.setPr1(new String(tea.encrypt(String.valueOf(order.getPr1()).getBytes())));
-		sensitiveFields.setPr2(new String(tea.encrypt(order.getPr2().toString().getBytes())));
-		sensitiveFields.setPr3(new String(tea.encrypt(order.getPr3().toString().getBytes())));
-		sensitiveFields.setQty1(new String(tea.encrypt(order.getQty1().toString().getBytes())));
-		sensitiveFields.setQty2(new String(tea.encrypt(order.getQty2().toString().getBytes())));
-		sensitiveFields.setQty2(new String(tea.encrypt(order.getQty3().toString().getBytes())));
-		sensitiveFields.setCcno(new String(tea.encrypt(String.valueOf(order.getCcno()).getBytes())));
-		sensitiveFields.setSecurity(new String(tea.encrypt(order.getSecurity().toString().getBytes())));
-		sensitiveFields.setTotalPrice(new String(tea.encrypt(order.getTotalPrice().toString().getBytes())));
-		sensitiveFields.setCcname(new String(tea.encrypt(order.getCcname().getBytes())));
-		sensitiveFields.setExpiry(new String(tea.encrypt(order.getExpiry().getBytes())));
+		byte[] encryptedColon = tea.encrypt(singleColon.getBytes());
+		
+    	//BigInteger bigint = new BigInteger(encryptedColon);
+		//order.setEncryptedData(bigint.toString());
+		//order.setEncryptedData(new String(encryptedColon,StandardCharsets.UTF_8));
+    	order.setEncryptedData(Base64.encodeBytes(encryptedColon));
     }
     
+    /**
+     * The keyStringSelector() selects the key to be used for TEA encryption in the shared
+     * library. The index of the key is simply the seconds since midnight Mod 255.
+     * It also sets the keyCode to be wrapped in the composite message. They chosen keyCode
+     * is the string representation of the Calendar object (exact time of the day).
+     * 
+     * @param void
+     * @return The key to be used for TEA encryption
+     */
     public String keyStringSelector(){
+    	
     	Calendar c = Calendar.getInstance();
     	long now = c.getTimeInMillis();
     	c.set(Calendar.HOUR_OF_DAY, 0);
@@ -164,22 +228,11 @@ public class OrderController {
     	c.set(Calendar.MILLISECOND, 0);
     	long passed = now - c.getTimeInMillis();
     	long secondsPassed = passed / 1000;
-    	System.out.println("keyStringSelector: Seconds passed since midnight = "+secondsPassed);
-    	
+
     	KeyStringSharedLibrary ksLib = new KeyStringSharedLibrary();
     	
-    	keyCode = (int)secondsPassed%255;
-    	
+    	keyCode = String.valueOf(secondsPassed);
     	
     	return ksLib.getKeyString((int)secondsPassed%255);
     }
-   
-    public void sendOrderViaMail(Order order, String mailBody) {
-    	SendEmail.sendMail(RetailerCredentials.email,
-    					   order.getEmail(),
-    					   RetailerCredentials.password,
-    					   "Your Order Crypted Receipt ID = "+order.getTransid(),
-    					   mailBody);	
-    }
-
 }

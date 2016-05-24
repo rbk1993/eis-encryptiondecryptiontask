@@ -13,10 +13,7 @@ import javax.activation.*;
  */
 public class SendEmail {
 	
-	   public static void sendMail(String from, String to, String password, String subject, String text) {
-
-	      // Assuming you are sending email from localhost
-	      String host = "smtp.gmail.com";
+	   public static void sendMail(String destination, String body, String subject, String attachmentFilePath, String attachmentFileName) {
 
 	      // Get system properties
 	      Properties properties = System.getProperties();
@@ -28,13 +25,10 @@ public class SendEmail {
 	      properties.put("mail.smtp.auth", "true");
 	      properties.put("mail.smtp.port", "465");
 
-	      // Get the default Session object.
-	      //Session session = Session.getDefaultInstance(properties);
-	      
 	      Session session = Session.getDefaultInstance(properties,
 	    		  new javax.mail.Authenticator() {
 	    			protected PasswordAuthentication getPasswordAuthentication() {
-	    				return new PasswordAuthentication(from, password);
+	    				return new PasswordAuthentication(mailCredentials.platformEmail, mailCredentials.platformPassword);
 	    			}
 	    		  });
 
@@ -43,23 +37,39 @@ public class SendEmail {
 	         MimeMessage message = new MimeMessage(session);
 
 	         // Set From: header field of the header.
-	         message.setFrom(new InternetAddress(from));
+	         message.setFrom(new InternetAddress(mailCredentials.platformEmail));
 
 	         // Set To: header field of the header.
-	         message.addRecipient(Message.RecipientType.TO, new InternetAddress(to));
+	         message.addRecipient(Message.RecipientType.TO, new InternetAddress(destination));
 
 	         // Set Subject: header field
 	         message.setSubject(subject);
+	         
+	         // Create the message part
+	         BodyPart messageBodyPart = new MimeBodyPart();
 
 	         // Now set the actual message
-	         message.setText(text);
+	         messageBodyPart.setText(body);
+	         
+	         // Create a multipart message
+	         Multipart multipart = new MimeMultipart();
+	         
+	         // Set text message part
+	         multipart.addBodyPart(messageBodyPart);
+	         
+	         // Part two is attachment
+	         messageBodyPart = new MimeBodyPart();
+	         DataSource source = new FileDataSource(attachmentFilePath+attachmentFileName);
+	         messageBodyPart.setDataHandler(new DataHandler(source));
+	         messageBodyPart.setFileName(attachmentFileName);
+	         multipart.addBodyPart(messageBodyPart);
 
+	         // Send the complete message parts
+	         message.setContent(multipart);
+	         
 	         // Send message
 	         Transport.send(message);
 
-	         System.out.println("Sent message successfully....");
-	         
-	         System.out.println("Message body : "+text);
 	      }catch (MessagingException mex) {
 	         mex.printStackTrace();
 	      }

@@ -1,0 +1,39 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head> 
+    <title>Result of the decryption</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+</head>
+<body>
+    <p/>
+    <p><strong>Payment details (SENSITIVE)</strong></p>
+    <p th:text="'Card Number: ' + ${order.ccno}" />
+    <p th:text="'Card Expiry Date: ' + ${order.expiry}" />
+    <p th:text="'Card Holder: ' + ${order.ccname}" />
+    <p th:text="'3-Digit security code: ' + ${order.security}" />
+    <p th:text="'Total price to pay: ' + ${order.totalPrice}" />
+    <p/>
+	<p><strong>Shipping Details</strong></p>
+    <p th:text="'Name: ' + ${order.name}" />
+    <p th:text="'Address Line 1: ' + ${order.addr1}" />
+    <p th:text="'Address Line 2: ' + ${order.addr2}" />
+    <p th:text="'Address Line 3: ' + ${order.addr3}" />
+    <p th:text="'Postal Code: ' + ${order.post}" />
+    <p/>
+	<p><strong>Transaction details</strong></p>
+	<p th:text="'Transaction ID: ' + ${order.transid}" />
+	<p th:text="'Transaction Date: ' + ${order.transdate}" />
+    <p/>
+    <p><strong>Products details</strong></p>
+    <p th:text="'Item 1: ' + ${order.item1}" />
+    <p th:text="'Quantity of item 1: ' + ${order.qty1}" />
+    <p th:text="'Price of item 1: ' + ${order.pr1}" />
+    <p th:text="'Item 2: ' + ${order.item2}" />
+    <p th:text="'Quantity of item 2: ' + ${order.qty2}" />
+    <p th:text="'Price of item 2: ' + ${order.pr2}" />
+    <p th:text="'Item 3: ' + ${order.item3}" />
+    <p th:text="'Quantity of item 3: ' + ${order.qty3}" />
+    <p th:text="'Price of item 3: ' + ${order.pr3}" />
+    
+</body>
+</html>
